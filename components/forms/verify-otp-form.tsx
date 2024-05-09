@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { signin, verify } from "@/lib/auth";
+import { useRouter } from "next/navigation";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 
@@ -37,15 +38,13 @@ const formSchema = z.object({
 });
 
 export default function VerifyOTPForm({
-  callback,
   backToSignin,
 }: {
-  callback: () => void;
   backToSignin: () => void;
 }) {
   const [loading, setLoading] = React.useState(false);
   const [resending, setResending] = React.useState(false);
-
+  const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -62,10 +61,10 @@ export default function VerifyOTPForm({
         otp: values.otp,
       });
       localStorage.removeItem("signin_email");
-      callback();
+
+      router.push("/dashboard");
     } catch (error: any) {
       toast.error(error.message);
-    } finally {
       setLoading(false);
     }
   }

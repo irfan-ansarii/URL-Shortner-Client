@@ -3,7 +3,7 @@ import React from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { CornerDownLeft, Link2, Loader } from "lucide-react";
+import { CornerDownLeft, Link2 } from "lucide-react";
 
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
@@ -28,16 +28,8 @@ import CreateLinkForm from "./create-link-form";
 import ShareLinkTab from "./share-link-tab";
 import VerifyOTPForm from "./verify-otp-form";
 import Link from "next/link";
-import { getSession } from "@/lib/auth";
 
-interface Session {
-  id: number;
-  firstName: string;
-  lastName: string;
-  phone: string;
-  email: string;
-  status: "active" | "blocked";
-}
+import { User } from "@/lib/types";
 
 const formSchema = z.object({
   longUrl: z
@@ -48,12 +40,9 @@ const formSchema = z.object({
     .url({ message: "Enter valid url" }),
 });
 
-export default function GenerateForm() {
+export default function GenerateForm({ session }: { session: User }) {
   const [open, toggle] = React.useState(false);
-
   const [active, setActive] = React.useState<undefined | string>(undefined);
-  const [loading, setLoading] = React.useState(false);
-  const [showCreateForm, setShowCreateForm] = React.useState(false);
 
   const { queryParams, setQueryParams } = useQueryParams();
 
@@ -67,34 +56,26 @@ export default function GenerateForm() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setLoading(true);
     setQueryParams({
       longUrl: values.longUrl,
     });
 
-    try {
-      await getSession();
-      setActive("create");
-    } catch (error) {
-      setShowCreateForm(true);
-      setActive("signin");
-    } finally {
-      setLoading(false);
-      toggle(true);
-    }
+    if (session) setActive("create");
+    else setActive("signin");
+
+    toggle(true);
   }
 
   const handleLogin = async (
     e: React.MouseEvent<HTMLAnchorElement, MouseEvent>
   ) => {
-    try {
-      await getSession();
-    } catch (error) {
+    if (!session) {
+      e.nativeEvent.stopImmediatePropagation();
       setActive("signin");
       toggle(true);
-      e.preventDefault();
-      e.nativeEvent.stopImmediatePropagation();
     }
+
+    return false;
   };
 
   return (
@@ -122,7 +103,7 @@ export default function GenerateForm() {
             )}
           />
           <Button type="submit" className="w-full">
-            {loading ? <Loader className="w-4 h-4 animate-spin" /> : "Generate"}
+            Generate
           </Button>
         </form>
       </Form>
@@ -155,16 +136,7 @@ export default function GenerateForm() {
               value="verify"
               className="focus-visible:ring-0 focus-visible:ring-offset-0 mt-0 grid gap-4"
             >
-              <VerifyOTPForm
-                callback={() => {
-                  if (showCreateForm) {
-                    setActive("create");
-                  } else {
-                    router.push("/dashboard");
-                  }
-                }}
-                backToSignin={() => setActive("signin")}
-              />
+              <VerifyOTPForm backToSignin={() => setActive("signin")} />
             </TabsContent>
 
             {/* create link */}

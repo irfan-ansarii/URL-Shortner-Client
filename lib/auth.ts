@@ -1,7 +1,7 @@
-"use server";
 import { fetchApi } from "./fetch-api";
-import { cookies } from "next/headers";
+
 import { handleResponse } from "./utils";
+import { removeToken, setToken } from "./session";
 
 export const getSession = async () => {
   const response = await fetchApi("/auth/session", "GET");
@@ -22,7 +22,7 @@ export const verify = async (data: Record<string, any>) => {
     ...data,
   });
 
-  setToken(response.token);
+  await setToken(response.token);
 
   return handleResponse(response);
 };
@@ -37,25 +37,6 @@ export const signup = async (data: Record<string, any>) => {
 };
 
 export const signout = async () => {
-  removeToken();
+  await removeToken();
   return true;
-};
-
-const setToken = (token: string) => {
-  const days = 7 * 24 * 60 * 60 * 1000;
-  cookies().set({
-    name: "token",
-    value: token,
-    httpOnly: true,
-    expires: Date.now() + days,
-  });
-};
-
-const removeToken = () => {
-  cookies().set({
-    name: "token",
-    value: "",
-    httpOnly: true,
-    expires: 0,
-  });
 };

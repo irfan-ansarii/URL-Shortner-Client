@@ -1,8 +1,15 @@
+import { getSession } from "@/lib/auth";
+
 import Footer from "./_components/footer";
 import GenerateForm from "@/components/forms/generate-form";
 import Header from "./_components/header";
 
 export default async function Home() {
+  let session = undefined;
+  try {
+    session = await getSession();
+  } catch (error) {}
+
   return (
     <div className="overflow-clip flex flex-col min-h-screen relative tracking-tight bg-muted/10">
       <div className="absolute w-full h-full top-0 z-[3] bg-[url('/square.svg')] invert dark:invert-0 bg-cover"></div>
@@ -41,7 +48,7 @@ export default async function Home() {
                 <div className="relative">
                   <div className="absolute inset-[-1.5rem] z-[-10] rounded bg-gradient-to-r from-purple-200 to-sky-200  dark:from-purple-600/20 dark:to-sky-600/30 min-h-[8rem]" />
                   {/* form here */}
-                  <GenerateForm />
+                  <GenerateForm session={session} />
                 </div>
               </div>
             </div>

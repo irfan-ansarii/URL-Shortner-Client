@@ -40,6 +40,10 @@ export const fetchApi = async (
 
     return await response.json();
   } catch (error: any) {
-    throw error;
+    const err = {
+      status: 500,
+      message: "Internal Server Error",
+    };
+    return err;
   }
 };
